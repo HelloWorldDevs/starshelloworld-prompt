@@ -22,7 +22,7 @@ $status\
 command = '''echo -n "░▒▓"'''
 when = "true"
 format = '[$output]($style)'
-style = "fg:#000000 bg:#000000"
+style = "fg:#000000"
 
 [custom.logo2]
 command = '''echo -n "hello"'''
