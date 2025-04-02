@@ -25,4 +25,26 @@ else
   echo "ℹ️  Starship already initialized in .zshrc"
 fi
 
+# 4. Install Nerd Font (FiraCode)
+echo "🔤 Checking for Nerd Font..."
+
+NERD_FONT_NAME="FiraCode"
+FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/FiraCode.zip"
+FONT_DIR="$HOME/Library/Fonts"
+
+if ! fc-list | grep -i "$NERD_FONT_NAME" &>/dev/null; then
+  echo "📥 Downloading FiraCode Nerd Font..."
+  curl -LO "$FONT_URL"
+  unzip -o FiraCode.zip -d "$FONT_DIR"
+  rm FiraCode.zip
+  echo "✅ Installed FiraCode Nerd Font to $FONT_DIR"
+else
+  echo "✅ Nerd Font already installed."
+fi
+
+echo
+echo "🎨 Please set your terminal font to 'FiraCode Nerd Font' manually in:"
+echo "   iTerm2 → Preferences → Profiles → Text → Font"
+echo "   or Terminal.app → Preferences → Profiles → Text → Font"
+
 echo "✅ All done. Open a new terminal or run: source ~/.zshrc"
