@@ -44,7 +44,7 @@ Make sure you have the following before installing:
 ### 1. Clone and run:
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/YOUR-USERNAME/YOUR-REPO/main/install.sh)
+bash <(curl -s https://raw.githubusercontent.com/HelloWorldDevs/starshelloworld-prompt/main/install.sh)
 ```
 
 This will:
