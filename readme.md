@@ -1,4 +1,4 @@
-## ✨ helloworld Prompt
+## ✨ Hello World Prompt
 
 A custom, high-style Starship prompt that says hello in the most *visually satisfying* way possible. Built for macOS devs who want **color, clarity, and clean powerline vibes** out of the box.
 
