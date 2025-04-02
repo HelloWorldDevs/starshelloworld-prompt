@@ -12,11 +12,10 @@ else
   echo "✅ Starship already installed."
 fi
 
-# 2. Check for and create starship.toml if needed
-STARSHIP_CONFIG="$(dirname "$0")/starship.toml"
-if [ ! -f "$STARSHIP_CONFIG" ]; then
-  echo "🔧 Creating starship.toml configuration file..."
-  cat > "$STARSHIP_CONFIG" << 'EOF'
+# 2. Create starship.toml in a temporary file
+TEMP_CONFIG="/tmp/starship.toml.$$"
+echo "🔧 Creating starship.toml configuration file..."
+cat > "$TEMP_CONFIG" << 'EOF'
 # Basic starship.toml configuration
 format = """
 $username\
@@ -44,12 +43,12 @@ style = "bold purple"
 [git_status]
 format = '([\[$all_status$ahead_behind\]]($style) )'
 EOF
-  echo "✅ Created starship.toml file"
-fi
+echo "✅ Created starship.toml file"
 
-# Copy starship.toml config
+# Copy starship.toml config to the proper location
 mkdir -p ~/.config
-cp "$STARSHIP_CONFIG" ~/.config/starship.toml
+cp "$TEMP_CONFIG" ~/.config/starship.toml
+rm "$TEMP_CONFIG"  # Clean up the temporary file
 echo "✅ Copied starship.toml to ~/.config"
 
 # 3. Add to .zshrc if missing
