@@ -12,44 +12,17 @@ else
   echo "✅ Starship already installed."
 fi
 
-# 2. Create starship.toml in a temporary file
-TEMP_CONFIG="/tmp/starship.toml.$$"
-echo "🔧 Creating starship.toml configuration file..."
-cat > "$TEMP_CONFIG" << 'EOF'
-# Basic starship.toml configuration
-format = """
-$username\
-$hostname\
-$directory\
-$git_branch\
-$git_state\
-$git_status\
-$cmd_duration\
-$line_break\
-$character"""
-
-[character]
-success_symbol = "[➜](bold green)"
-error_symbol = "[✗](bold red)"
-
-[directory]
-truncation_length = 3
-truncation_symbol = "…/"
-
-[git_branch]
-format = "[$symbol$branch]($style) "
-style = "bold purple"
-
-[git_status]
-format = '([\[$all_status$ahead_behind\]]($style) )'
-EOF
-echo "✅ Created starship.toml file"
-
-# Copy starship.toml config to the proper location
+# 2. Download starship.toml from the repo
+CONFIG_URL="https://raw.githubusercontent.com/HelloWorldDevs/starshelloworld-prompt/main/starship.toml"
+echo "🔧 Downloading starship.toml configuration..."
 mkdir -p ~/.config
-cp "$TEMP_CONFIG" ~/.config/starship.toml
-rm "$TEMP_CONFIG"  # Clean up the temporary file
-echo "✅ Copied starship.toml to ~/.config"
+if [ -f ~/.config/starship.toml ]; then
+  BACKUP=~/.config/starship.toml.bak.$(date +%s)
+  cp ~/.config/starship.toml "$BACKUP"
+  echo "ℹ️  Existing starship.toml backed up to $BACKUP"
+fi
+curl -fsSL "$CONFIG_URL" -o ~/.config/starship.toml
+echo "✅ Installed starship.toml to ~/.config"
 
 # 3. Add to .zshrc if missing
 if ! grep -q 'eval "$(starship init zsh)"' ~/.zshrc; then
