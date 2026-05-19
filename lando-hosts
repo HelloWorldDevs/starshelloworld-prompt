@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+#
+# lando-hosts — keep /etc/hosts in sync with your Lando project hostnames.
+#
+# Part of: https://github.com/HelloWorldDevs/starshelloworld-prompt
+#
+# Editing /etc/hosts requires sudo; you may be prompted for your password.
+
+set -euo pipefail
+
+HOSTS_FILE="/etc/hosts"
+TAG="# lando-hosts"
+
+info() { printf 'lando-hosts: %s\n' "$*"; }
+err()  { printf 'lando-hosts: %s\n' "$*" >&2; }
+
+usage() {
+  cat <<'EOF'
+lando-hosts — keep /etc/hosts in sync with your Lando project hostnames
+
+Usage:
+  lando-hosts auto                     Detect hostnames from ./.lando.yml and add them
+  lando-hosts add <host> [host...]     Add 127.0.0.1 entries for the given hosts
+  lando-hosts list                     List entries managed by lando-hosts
+  lando-hosts remove <host> [host...]  Remove managed entries
+
+Editing /etc/hosts requires sudo; you may be prompted for your password.
+EOF
+}
+
+# Escape a string for safe literal use inside a POSIX extended regex.
+esc() { printf '%s' "$1" | sed 's/[][\.*^$(){}?+|]/\\&/g'; }
+
+# True if a 127.0.0.1 entry for $1 already exists.
+has_entry() {
+  grep -qE "^[[:space:]]*127\.0\.0\.1[[:space:]]+$(esc "$1")([[:space:]]|$)" "$HOSTS_FILE"
+}
+
+add_one() {
+  local host="$1"
+  if has_entry "$host"; then
+    info "$host already resolves locally"
+    return 0
+  fi
+  info "adding $host -> 127.0.0.1"
+  printf '127.0.0.1\t%s\t%s\n' "$host" "$TAG" | sudo tee -a "$HOSTS_FILE" >/dev/null
+}
+
+remove_one() {
+  local host="$1"
+  local tmp
+  tmp="$(mktemp)"
+  # Only ever drop lines we added (they carry the TAG).
+  grep -vE "^[[:space:]]*127\.0\.0\.1[[:space:]]+$(esc "$host")[[:space:]]+${TAG}[[:space:]]*$" \
+    "$HOSTS_FILE" > "$tmp" || true
+  if cmp -s "$tmp" "$HOSTS_FILE"; then
+    rm -f "$tmp"
+    info "$host has no managed entry"
+    return 0
+  fi
+  sudo cp "$tmp" "$HOSTS_FILE"
+  rm -f "$tmp"
+  info "removed $host"
+}
+
+# Print hostnames discovered in ./.lando.yml (one per line).
+detect_hosts() {
+  local f found=0
+  for f in .lando.yml .lando.local.yml; do
+    [ -f "$f" ] || continue
+    found=1
+    # `name: foo`  ->  foo.lndo.site  (Lando's default project URL)
+    awk -F: '/^[[:space:]]*name:/ {
+      v=$2; gsub(/[[:space:]"]/, "", v);
+      if (v != "") print v ".lndo.site"
+    }' "$f"
+    # Any explicit dev hostname (e.g. custom `proxy:` entries).
+    grep -oE '([A-Za-z0-9_-]+\.)+(lndo\.site|local|test|localhost|dev)' "$f" || true
+  done
+  if [ "$found" -eq 0 ]; then
+    err "no .lando.yml found in $(pwd)"
+    return 1
+  fi
+}
+
+cmd_auto() {
+  local hosts host
+  hosts="$(detect_hosts | sort -u)" || exit 1
+  if [ -z "$hosts" ]; then
+    info "no hostnames detected in .lando.yml"
+    return 0
+  fi
+  while IFS= read -r host; do
+    [ -n "$host" ] && add_one "$host"
+  done <<< "$hosts"
+}
+
+cmd_list() {
+  local out
+  out="$(grep -nE "${TAG}[[:space:]]*\$" "$HOSTS_FILE" || true)"
+  if [ -n "$out" ]; then
+    printf '%s\n' "$out"
+  else
+    info "no managed entries in $HOSTS_FILE"
+  fi
+}
+
+main() {
+  local cmd="${1:-}" host
+  case "$cmd" in
+    auto)
+      cmd_auto
+      ;;
+    add)
+      shift
+      [ $# -gt 0 ] || { err "usage: lando-hosts add <host> [host...]"; exit 1; }
+      for host in "$@"; do add_one "$host"; done
+      ;;
+    list|ls)
+      cmd_list
+      ;;
+    remove|rm)
+      shift
+      [ $# -gt 0 ] || { err "usage: lando-hosts remove <host> [host...]"; exit 1; }
+      for host in "$@"; do remove_one "$host"; done
+      ;;
+    ""|-h|--help|help)
+      usage
+      ;;
+    *)
+      err "unknown command: $cmd"
+      usage
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"

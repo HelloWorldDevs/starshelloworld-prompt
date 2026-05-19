@@ -15,6 +15,8 @@ A custom, high-style Starship prompt that says hello in the most *visually satis
 - ⏳ Command duration (only if >1 min)
 - ⌚ Time, status, directory — everything you need at a glance
 - 🔥 Nerd Font-compatible with slick dev icons
+- ⌨️ Zsh autosuggestions, syntax highlighting & macOS-style key bindings
+- 🌐 Auto-syncs `/etc/hosts` for Lando projects on `lando start`
 
 ---
 
@@ -50,8 +52,10 @@ bash <(curl -s https://raw.githubusercontent.com/HelloWorldDevs/starshelloworld-
 This will:
 
 - ✅ Install Starship if not present
+- ✅ Install zsh plugins (autosuggestions, syntax-highlighting)
 - ✅ Set up your full `starship.toml` config
-- ✅ Add the prompt to your `~/.zshrc` automatically
+- ✅ Install shell enhancements + the `lando-hosts` helper
+- ✅ Add everything to your `~/.zshrc` automatically
 
 ---
 
@@ -82,6 +86,42 @@ Want to change colors, icons, or add segments? Just edit:
 ```
 
 You can tweak everything — even the logo is modular.
+
+---
+
+## 🐚 Shell Enhancements
+
+The installer also wires up a batch of zsh quality-of-life upgrades, kept in
+`~/.config/starshelloworld/helloworld.zsh` and sourced from your `~/.zshrc`:
+
+- **Autosuggestions** — fish-style suggestions from history (`zsh-autosuggestions`)
+- **Syntax highlighting** — commands are colored as you type (`zsh-syntax-highlighting`)
+- **Tab completion** — case-insensitive, with an arrow-key menu
+- **Smarter history** — 50k lines, shared across tabs, deduped
+- **Key bindings** — Option+←/→ word jumps, Home/End, ⌥-delete
+
+> In **iTerm2**, also enable **Settings → Profiles → Keys → Key Mappings →
+> Presets → Natural Text Editing** so the terminal emits the escape sequences
+> these bindings expect.
+
+---
+
+## 🌐 Lando + /etc/hosts
+
+Ships a `lando-hosts` helper (installed to `~/.local/bin`) that keeps
+`/etc/hosts` in sync with your Lando project hostnames:
+
+```bash
+lando-hosts auto                 # detect hosts from ./.lando.yml and add them
+lando-hosts add myapp.test       # add a specific host
+lando-hosts list                 # show managed entries
+lando-hosts remove myapp.test    # remove a managed entry
+```
+
+It also wraps the `lando` command: `lando start`, `lando restart`, and
+`lando rebuild` automatically run `lando-hosts auto` first, so a project's
+hostnames always resolve locally. Editing `/etc/hosts` needs `sudo`, so you
+may be prompted for your password the first time an entry is added.
 
 ---
 
