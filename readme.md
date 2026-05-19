@@ -112,11 +112,14 @@ Ships a `lando-hosts` helper (installed to `~/.local/bin`) that keeps
 `/etc/hosts` in sync with your Lando project hostnames:
 
 ```bash
-lando-hosts auto                 # detect hosts from ./.lando.yml and add them
-lando-hosts add myapp.test       # add a specific host
-lando-hosts list                 # show managed entries
-lando-hosts remove myapp.test    # remove a managed entry
+lando-hosts auto                  # detect hosts from ./.lando.yml and add them
+lando-hosts add myapp.lando       # add a specific host
+lando-hosts list                  # show managed entries
+lando-hosts remove myapp.lando    # remove a managed entry
 ```
+
+`auto` reads the project `name:` from `./.lando.yml` and maps it to
+`<name>.lando` (plus any custom hostnames found in `proxy:` entries).
 
 It also wraps the `lando` command: `lando start`, `lando restart`, and
 `lando rebuild` automatically run `lando-hosts auto` first, so a project's

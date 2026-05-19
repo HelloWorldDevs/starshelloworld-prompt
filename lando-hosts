@@ -69,13 +69,13 @@ detect_hosts() {
   for f in .lando.yml .lando.local.yml; do
     [ -f "$f" ] || continue
     found=1
-    # `name: foo`  ->  foo.lndo.site  (Lando's default project URL)
+    # `name: foo`  ->  foo.lando
     awk -F: '/^[[:space:]]*name:/ {
       v=$2; gsub(/[[:space:]"]/, "", v);
-      if (v != "") print v ".lndo.site"
+      if (v != "") print v ".lando"
     }' "$f"
     # Any explicit dev hostname (e.g. custom `proxy:` entries).
-    grep -oE '([A-Za-z0-9_-]+\.)+(lndo\.site|local|test|localhost|dev)' "$f" || true
+    grep -oE '([A-Za-z0-9_-]+\.)+(lando|lndo\.site|local|test|localhost|dev)' "$f" || true
   done
   if [ "$found" -eq 0 ]; then
     err "no .lando.yml found in $(pwd)"
